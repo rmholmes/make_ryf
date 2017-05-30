@@ -1,17 +1,15 @@
 import xarray
+import netCDF4 as nc
 import os
 import datetime
 from glob import glob
 from calendar import isleap
+import numpy as np
 
 jradir = '/g/data1/ua8/JRA55-do/v1-1/'
-# variables = ['q_10', 'rain', 'rlds', 'rsds', 'slp', 'snow', 't_10', 'u_10', 'v_10', 'runoff_all' ]
-# variables = ['runoff_all' ]
-variables = ['u_10']
+variables = ['q_10', 'rain', 'rlds', 'rsds', 'slp', 'snow', 't_10', 'u_10', 'v_10', 'runoff_all' ]
 
 years = (1984, 1990, 2003)
-# years = (2003,)
-# years = (1984,)
 
 FillValue = -9.99e34
 
@@ -21,7 +19,7 @@ for year1 in years:
     # By default the second half of year1 is stitched into first half of year2
     year2 = year1 + 1
 
-    # If second year is a leap year swap years
+    # If second year is a leap year make the "base year" year1 and use time slices from the beginning of the year
     if isleap(year2):
         baseyear = year1
         timeslice1 = slice(datetime.datetime(year1, 1, 1, 0, 0),datetime.datetime(year1, 4, 30, 23, 59))
@@ -31,8 +29,6 @@ for year1 in years:
         baseyear = year2
         timeslice1 = slice(datetime.datetime(year1, 5, 1, 0, 0),datetime.datetime(year1, 12, 31, 23, 59))
         timeslice2 = slice(datetime.datetime(year2, 5, 1, 0, 0),datetime.datetime(year2, 12, 31, 23, 59))
-
-    print "Stitching end of {} to {}".format(year1,year2)
 
     ds = {}
 
@@ -45,6 +41,7 @@ for year1 in years:
 
         # Make a copy of the second year without time_bnds
         ryf = ds[baseyear].drop("time_bnds")
+        ryf.encoding = ds[baseyear].encoding
 
         for varname in ryf.data_vars:
             # Have to give all variables a useless FillValue attribute, otherwise xarray
@@ -69,6 +66,24 @@ for year1 in years:
             # Have to give all dimensions a useless FillValue attribute, otherwise xarray
             # makes it NaN and MOM does not like this
             ryf[dim].encoding['_FillValue'] = FillValue
-            print dim, ryf[dim].encoding
 
-        ryf.to_netcdf("RYF.{}.{}_{}.nc".format(var,year1,year2))
+
+        # Make a new time dimension with no offset from origin (1900-01-01) so we don't get an offset after
+        # changing calendar to noleap
+        newtime = (ryf.indexes["time"].values - ryf.indexes["time"].values[0]) + np.datetime64('1900-01-01','D')
+        ryf.indexes["time"].values[:] = newtime[:]
+    
+        ryf["time"].attrs = {'modulo':' ',
+                     'axis':'T',
+                     'cartesian_axis':'T',
+                     # 'calendar':'noleap'
+        }
+
+        outfile = "RYF.{}.{}_{}.nc".format(var,year1,year2)
+        ryf.to_netcdf(outfile)
+
+        # Open the file again directly with the netCDF4 library to change the calendar attribute. xarray
+        # has a hissy fit as this violates it's idea of CF encoding if it is done before writing the file above
+        ryf = nc.Dataset(outfile, mode="r+")
+        ryf.variables["time"].calendar = "noleap"
+        ryf.close()
