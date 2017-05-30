@@ -9,8 +9,8 @@ jradir = '/g/data1/ua8/JRA55-do/v1-1/'
 # variables = ['runoff_all' ]
 variables = ['u_10']
 
-# years = (1984, 1990, 2003)
-years = (2003,)
+years = (1984, 1990, 2003)
+# years = (2003,)
 # years = (1984,)
 
 FillValue = -9.99e34
@@ -23,12 +23,16 @@ for year1 in years:
 
     # If second year is a leap year swap years
     if isleap(year2):
-        year1, year2 = year2, year1
+        baseyear = year1
+        timeslice1 = slice(datetime.datetime(year1, 1, 1, 0, 0),datetime.datetime(year1, 4, 30, 23, 59))
+        # Take one less day in this slice, to account for the leap day
+        timeslice2 = slice(datetime.datetime(year2, 1, 1, 0, 0),datetime.datetime(year2, 4, 29, 23, 59))
+    else:
+        baseyear = year2
+        timeslice1 = slice(datetime.datetime(year1, 5, 1, 0, 0),datetime.datetime(year1, 12, 31, 23, 59))
+        timeslice2 = slice(datetime.datetime(year2, 5, 1, 0, 0),datetime.datetime(year2, 12, 31, 23, 59))
 
     print "Stitching end of {} to {}".format(year1,year2)
-
-    timeslice1 = slice(datetime.datetime(year1, 5, 1, 0, 0),datetime.datetime(year1, 12, 31, 23, 59))
-    timeslice2 = slice(datetime.datetime(year2, 5, 1, 0, 0),datetime.datetime(year2, 12, 31, 23, 59))
 
     ds = {}
 
@@ -40,7 +44,7 @@ for year1 in years:
             ds[y] = xarray.open_dataset(files[0],decode_coords=False)
 
         # Make a copy of the second year without time_bnds
-        ryf = ds[year2].drop("time_bnds")
+        ryf = ds[baseyear].drop("time_bnds")
 
         for varname in ryf.data_vars:
             # Have to give all variables a useless FillValue attribute, otherwise xarray
@@ -51,8 +55,12 @@ for year1 in years:
             if len(ryf[varname].shape) < 3: continue
 
             print "Processing ",varname
-            # Set the May->Dec values to those from the second year
-            ryf[varname].loc[dict(time=timeslice2)] = ds[year1][varname].sel(time=timeslice1).values
+            if isleap(year2):
+                # Set the Jan->Apr values to those from the first year
+                ryf[varname].loc[dict(time=timeslice1)] = ds[year2][varname].sel(time=timeslice2).values
+            else:
+                # Set the May->Dec values to those from the first year
+                ryf[varname].loc[dict(time=timeslice2)] = ds[year1][varname].sel(time=timeslice1).values
             # Compress the data?
             # encdir[varname] = dict(zlib=True, shuffle=True, complevel=4)
             # encdict[varname] = dict(contiguous=True)
