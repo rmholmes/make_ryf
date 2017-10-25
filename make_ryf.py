@@ -6,7 +6,7 @@ from glob import glob
 from calendar import isleap
 import numpy as np
 
-jradir = '/g/data1/ua8/JRA55-do/v1-1/'
+jradir = '/g/data1/ua8/JRA55-do/v1-3/'
 variables = ['q_10', 'rain', 'rlds', 'rsds', 'slp', 'snow', 't_10', 'u_10', 'v_10', 'runoff_all' ]
 
 years = (1984, 1990, 2003)
@@ -27,8 +27,8 @@ for year1 in years:
         timeslice2 = slice(datetime.datetime(year2, 1, 1, 0, 0),datetime.datetime(year2, 4, 29, 23, 59))
     else:
         baseyear = year2
-        timeslice1 = slice(datetime.datetime(year1, 5, 1, 0, 0),datetime.datetime(year1, 12, 31, 23, 59))
-        timeslice2 = slice(datetime.datetime(year2, 5, 1, 0, 0),datetime.datetime(year2, 12, 31, 23, 59))
+        timeslice1 = slice(datetime.datetime(year1, 5, 1, 0, 0),None)
+        timeslice2 = slice(datetime.datetime(year2, 5, 1, 0, 0),None)
 
     ds = {}
 
