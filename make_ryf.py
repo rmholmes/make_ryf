@@ -6,7 +6,7 @@ from glob import glob
 from calendar import isleap
 import numpy as np
 
-jradir = '/g/data1/ua8/JRA55-do/v1-3/'
+jradir = '/g/data/ua8/JRA55-do/v1-3/'
 variables = ['q_10', 'rain', 'rlds', 'rsds', 'slp', 'snow', 't_10', 'u_10', 'v_10', 'runoff_all' ]
 
 years = (1984, 1990, 2003)
