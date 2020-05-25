@@ -6,10 +6,17 @@ from glob import glob
 from calendar import isleap
 import numpy as np
 
-jradir = '/g/data1/ua8/JRA55-do/v1-3/'
-variables = ['q_10', 'rain', 'rlds', 'rsds', 'slp', 'snow', 't_10', 'u_10', 'v_10', 'runoff_all' ]
+jra55v1p4 = True  # whether to use JRA55-do v1.4
 
-years = (1984, 1990, 2003)
+if jra55v1p4:
+# see https://raw.githubusercontent.com/COSIMA/1deg_jra55_iaf/2d6fdf53ae89124e7e11d40176813c286a8279bb/atmosphere/forcing.json
+    jradir = '/g/data/qv56/replicas/input4MIPs/CMIP6/OMIP/MRI/MRI-JRA55-do-1-4-0/'
+    variables = ['rsds', 'rlds', 'prra', 'prsn', 'psl', 'friver', 'tas', 'huss', 'uas', 'vas', 'licalvf']
+    years = (1990, )
+else:
+    jradir = '/g/data/ua8/JRA55-do/v1-3/'
+    variables = ['q_10', 'rain', 'rlds', 'rsds', 'slp', 'snow', 't_10', 'u_10', 'v_10', 'runoff_all']
+    years = (1984, 1990, 2003)
 
 FillValue = -9.99e34
 
@@ -32,13 +39,19 @@ for year1 in years:
 
     ds = {}
 
-    for var in variables: 
+    for var in variables:
         print var
         for y in (year1, year2):
-            files = glob(os.path.join(jradir,"{}.{}.*.nc".format(var,y)))
+            if jra55v1p4:
+            # see https://raw.githubusercontent.com/COSIMA/1deg_jra55_iaf/2d6fdf53ae89124e7e11d40176813c286a8279bb/atmosphere/forcing.json
+                files  = glob(os.path.join(jradir,"atmos/3hr/{v}/gr/v20190429/{v}/{v}*{yr}*.nc".format(v=var, yr=y)))
+                files += glob(os.path.join(jradir,"atmos/3hrPt/{v}/gr/v20190429/{v}/{v}*{yr}*.nc".format(v=var, yr=y)))
+                files += glob(os.path.join(jradir,"land/day/{v}/gr/v20190429/{v}/{v}*{yr}*.nc".format(v=var, yr=y)))
+                files += glob(os.path.join(jradir,"landIce/day/{v}/gr/v20190429/{v}/{v}*{yr}*.nc".format(v=var, yr=y)))
+            else:
+                files = glob(os.path.join(jradir,"{}.{}.*.nc".format(var,y)))
             print "Loading {} for {}".format(files[0],y)
             ds[y] = xarray.open_dataset(files[0],decode_coords=False)
-
         # Make a copy of the second year without time_bnds
         ryf = ds[baseyear].drop("time_bnds")
         ryf.encoding = ds[baseyear].encoding
@@ -72,7 +85,7 @@ for year1 in years:
         # changing calendar to noleap
         newtime = (ryf.indexes["time"].values - ryf.indexes["time"].values[0]) + np.datetime64('1900-01-01','D')
         ryf.indexes["time"].values[:] = newtime[:]
-    
+
         ryf["time"].attrs = {'modulo':' ',
                      'axis':'T',
                      'cartesian_axis':'T',
