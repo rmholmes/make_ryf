@@ -6,19 +6,11 @@ from glob import glob
 from calendar import isleap
 import numpy as np
 
-jra55v1p4 = True  # whether to use JRA55-do v1.4
+era5dir = '/g/data/rt52/era5/single-levels/reanalysis/'
+variables = ['msdwswrf']#,'msdwlwrf','crr','lsrr','msr','msl','mror','2t','2d','sp','10u','10v']
+years = [1990]
 
-if jra55v1p4:
-# see https://raw.githubusercontent.com/COSIMA/1deg_jra55_iaf/2d6fdf53ae89124e7e11d40176813c286a8279bb/atmosphere/forcing.json
-    jradir = '/g/data/qv56/replicas/input4MIPs/CMIP6/OMIP/MRI/MRI-JRA55-do-1-4-0/'
-    variables = ['rsds', 'rlds', 'prra', 'prsn', 'psl', 'friver', 'tas', 'huss', 'uas', 'vas', 'licalvf']
-    years = (1990, )
-else:
-    jradir = '/g/data/ua8/JRA55-do/v1-3/'
-    variables = ['q_10', 'rain', 'rlds', 'rsds', 'slp', 'snow', 't_10', 'u_10', 'v_10', 'runoff_all']
-    years = (1984, 1990, 2003)
-
-FillValue = -9.99e34
+FillValue = np.int64(1.e20)
 
 # loop over years
 for year1 in years:
@@ -40,20 +32,14 @@ for year1 in years:
     ds = {}
 
     for var in variables:
-        print var
+        print(var)
         for y in (year1, year2):
-            if jra55v1p4:
-            # see https://raw.githubusercontent.com/COSIMA/1deg_jra55_iaf/2d6fdf53ae89124e7e11d40176813c286a8279bb/atmosphere/forcing.json
-                files  = glob(os.path.join(jradir,"atmos/3hr/{v}/gr/v20190429/{v}/{v}*{yr}*.nc".format(v=var, yr=y)))
-                files += glob(os.path.join(jradir,"atmos/3hrPt/{v}/gr/v20190429/{v}/{v}*{yr}*.nc".format(v=var, yr=y)))
-                files += glob(os.path.join(jradir,"land/day/{v}/gr/v20190429/{v}/{v}*{yr}*.nc".format(v=var, yr=y)))
-                files += glob(os.path.join(jradir,"landIce/day/{v}/gr/v20190429/{v}/{v}*{yr}*.nc".format(v=var, yr=y)))
-            else:
-                files = glob(os.path.join(jradir,"{}.{}.*.nc".format(var,y)))
-            print "Loading {} for {}".format(files[0],y)
-            ds[y] = xarray.open_dataset(files[0],decode_coords=False)
+            files = glob(os.path.join(era5dir,"{v}/{y}/*.nc".format(v=var,y=y)))
+            for f in files:
+                print("Loading {} for {}".format(f,y))
+            ds[y] = xarray.open_mfdataset(files,decode_coords=False)
         # Make a copy of the second year without time_bnds
-        ryf = ds[baseyear].drop("time_bnds")
+        ryf = ds[baseyear]
         ryf.encoding = ds[baseyear].encoding
 
         for varname in ryf.data_vars:
@@ -64,7 +50,7 @@ for year1 in years:
             # Only process variables with 3 or more dimensions
             if len(ryf[varname].shape) < 3: continue
 
-            print "Processing ",varname
+            print("Processing ",varname)
             if isleap(year2):
                 # Set the Jan->Apr values to those from the first year
                 ryf[varname].loc[dict(time=timeslice1)] = ds[year2][varname].sel(time=timeslice2).values
