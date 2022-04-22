@@ -7,10 +7,10 @@ from calendar import isleap
 import numpy as np
 
 era5dir = '/g/data/rt52/era5/single-levels/reanalysis/'
-variables = ['msdwswrf']#,'msdwlwrf','crr','lsrr','msr','msl','mror','2t','2d','sp','10u','10v']
+variables = ['msdwswrf','msdwlwrf','crr','lsrr','msr','msl','mror','2t','2d','sp','10u','10v']
 years = [1990]
 
-FillValue = np.int64(1.e20)
+FillValue = np.int64(-1.e10)
 
 # loop over years
 for year1 in years:
