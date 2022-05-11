@@ -1,17 +1,11 @@
 ## Generate RYF data files
 
-First start up an interactive job on Gadi to get enough memory:
+This script generates RYF data files for the ERA-5 forcing.
 
-```bash
-qsub -I -X -P v45 -q express -l mem=32GB -l storage=gdata/hh5+gdata/e14+gdata/ik11+gdata/rt52
-```
+To run, do:
 
-Then run the following to create the May-May repeat year forcings
+python3 make_ryf_loop.py
 
-```bash
-module use /g/data3/hh5/public/modules
-module load conda/analysis3
-
-python make_ryf.py
-```
-
+make_ryf_loop.py submits a single cpu job for each ERA-5 variable
+using the submission script make_ryf.sub. For each variable this calls
+the script make_ryf.py.
