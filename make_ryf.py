@@ -7,7 +7,7 @@ from calendar import isleap
 import numpy as np
 
 era5dir = '/g/data/rt52/era5/single-levels/reanalysis/'
-variables = ['msdwswrf','msdwlwrf','crr','lsrr','msr','msl','mror','2t','2d','sp','10u','10v']
+variables = ['msr']#['msdwswrf','msdwlwrf','crr','lsrr','msr','msl','2t','2d','sp','10u','10v']
 years = [1990]
 
 FillValue = np.int64(-1.e10)
@@ -60,6 +60,9 @@ for year1 in years:
             # Compress the data?
             # encdir[varname] = dict(zlib=True, shuffle=True, complevel=4)
             # encdict[varname] = dict(contiguous=True)
+            
+            # Set chunk sizes for performance:
+            ryf[varname] = ryf[varname].chunk({'longitude':1440,'latitude':721,'time':24})
 
         for dim in ryf.dims:
             # Have to give all dimensions a useless FillValue attribute, otherwise xarray

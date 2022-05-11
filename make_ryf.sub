@@ -3,7 +3,7 @@
 #PBS -P v45
 #PBS -l ncpus=28
 #PBS -l mem=256GB
-#PBS -l walltime=1:00:00
+#PBS -l walltime=05:00:00
 #PBS -l wd
 #PBS -l storage=gdata/hh5+gdata/ik11+gdata/rt52+gdata/e14
 #PBS -q expressbw
