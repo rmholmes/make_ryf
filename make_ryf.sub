@@ -1,9 +1,9 @@
 #!/bin/bash
 #PBS -N ERA5_RYF
 #PBS -P v45
-#PBS -l ncpus=28
-#PBS -l mem=256GB
-#PBS -l walltime=05:00:00
+#PBS -l ncpus=1
+#PBS -l mem=124GB
+#PBS -l walltime=06:00:00
 #PBS -l wd
 #PBS -l storage=gdata/hh5+gdata/ik11+gdata/rt52+gdata/e14
 #PBS -q expressbw
@@ -14,5 +14,5 @@ module purge
 module use /g/data3/hh5/public/modules
 module load conda/analysis3
 
-python make_ryf.py
+python make_ryf.py $var
 
