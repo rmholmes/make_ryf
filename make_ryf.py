@@ -1,4 +1,5 @@
 from calendar import isleap
+from collections import defaultdict
 import os
 import sys
 from pathlib import Path
@@ -49,7 +50,7 @@ else:
 # Take last six months of year1 and first six months of year2
 ryf = xr.concat([jan_apr, jun_dec], dim='time')
 
-encdict = {}
+encdict = defaultdict(dict)
 
 for varname in ryf.data_vars:
 
@@ -67,9 +68,9 @@ for varname in ryf.data_vars:
     # Compress the data?
     encdict[varname].update(
                             { 
-                              # 'zlib': True, 
-                              # 'shuffle': True, 
-                              # 'complevel': 4 
+                              'zlib': True 
+                              'shuffle': True, 
+                              'complevel': 4
                               'chunksizes': (24, 721, 1440),
                             }
                            )
@@ -77,7 +78,7 @@ for varname in ryf.data_vars:
 for dim in ryf.dims:
     # Have to give all dimensions a useless FillValue attribute, otherwise xarray
     # makes it NaN and MOM does not like this
-    encdict[dim].encoding['_FillValue'] = FillValue
+    encdict[dim]['_FillValue'] = FillValue
 
 # Make a new time dimension with no offset from origin (1900-01-01) so we don't get an offset after
 # changing calendar to noleap
