@@ -68,9 +68,9 @@ for varname in ryf.data_vars:
     # Compress the data?
     encdict[varname].update(
                             { 
-                              'zlib': True 
-                              'shuffle': True, 
-                              'complevel': 4,
+                              'zlib': False, #True 
+                              'shuffle': False, #True, 
+                              'complevel': 0, #4,
                               'chunksizes': (24, 721, 1440),
                             }
                            )
