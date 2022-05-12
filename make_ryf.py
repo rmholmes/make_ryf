@@ -70,7 +70,7 @@ for varname in ryf.data_vars:
                             { 
                               'zlib': True 
                               'shuffle': True, 
-                              'complevel': 4
+                              'complevel': 4,
                               'chunksizes': (24, 721, 1440),
                             }
                            )
