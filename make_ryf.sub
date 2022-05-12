@@ -1,0 +1,17 @@
+#!/bin/bash
+#PBS -N ERA5_RYF
+#PBS -P x77
+#PBS -l ncpus=1
+#PBS -l mem=24GB
+#PBS -l walltime=01:00:00
+#PBS -l wd
+#PBS -l storage=scratch/v45+gdata/hh5+gdata/ik11+gdata/rt52+gdata/e14
+#PBS -q normalbw
+
+module purge
+module use /g/data3/hh5/public/modules
+module load conda/analysis3
+
+echo python make_ryf.py $year $var
+python make_ryf.py $year $var
+
