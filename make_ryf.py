@@ -67,17 +67,17 @@ for varname in ryf.data_vars:
     # Compress the data?
     encdict[varname].update(
                             { 
-                              # zlib: True, 
-                              # shuffle: True, 
-                              # complevel: 4 
-                              chunksizes: (24, 721, 1440),
+                              # 'zlib': True, 
+                              # 'shuffle': True, 
+                              # 'complevel': 4 
+                              'chunksizes': (24, 721, 1440),
                             }
                            )
 
 for dim in ryf.dims:
     # Have to give all dimensions a useless FillValue attribute, otherwise xarray
     # makes it NaN and MOM does not like this
-    encdim[dim].encoding['_FillValue'] = FillValue
+    encdict[dim].encoding['_FillValue'] = FillValue
 
 # Make a new time dimension with no offset from origin (1900-01-01) so we don't get an offset after
 # changing calendar to noleap
@@ -85,9 +85,9 @@ newtime = (ryf.indexes["time"].values - ryf.indexes["time"].values[0]) + np.date
 ryf.indexes["time"].values[:] = newtime[:]
 
 ryf["time"].attrs = {
-                     'modulo':' ',
-                     'axis':'T',
-                     'cartesian_axis':'T',
+                     'modulo': ' ',
+                     'axis': 'T',
+                     'cartesian_axis': 'T',
                     }
 
 outfile = "RYF.{}.{}_{}.nc".format(var,year1,year2)
